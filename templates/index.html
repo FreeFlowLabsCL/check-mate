@@ -1,0 +1,43 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+        <title>CheckMate: ¿Es real o Fake New?</title>
+    </head>
+    <body>
+        <main class="container">
+        <header>
+            <h1>Checkmate</h1>
+            <h2>ES real o Fake New?</h2>
+        </header>
+        <div class="aplicacion">
+            <h1>CHECKMATE WEB</h1>
+            <p1>Verifiquemos si tu noticia/afirmación es real según los medios especializados</p1>
+        </div>
+        <div class="formulario-app">
+            <h1>Ingresa el link de tu noticia o tu afirmación</h1>
+            <form method="post" class="formulario-user">
+                <input type='text' name="input_userform">
+                <button type="submit">Consultar</button>
+            </form>
+        </div>
+        <div class="resultados">
+            {% if resultados%}
+                {% for item in resultados %}
+                    <article>
+                    <h1 name="afirmacion">Afirmación: {{ item['text'] }} </h1>
+                    <h2 name ="autor">Autor: {{ item['claimReview'][0]['publisher']['name'] }}</h2>
+                    <h3 name="titulo"> Titulo: {{ item['claimReview'][0]['title'] }}</h3>
+                    <p1 name="rating">Conclusión {{ item['claimReview'][0]['textualRating'] }}</p1>
+                    </article>
+                {%endfor%}
+            {% else %}
+                <article>
+                <h1>('Lo siento, no se encontraron verificaciones oficiales sobre este tema.')</h1> 
+                </article>
+            {%endif%}
+        </div>
+        </main>
+    </body>
+
+</html>
