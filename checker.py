@@ -1,50 +1,36 @@
-#Mis importaciones :)
+# checker.py
 import requests, os
-from pathlib import Path
-from bs4 import BeautifulSoup
-import json
-from extraer import extraer_titulo
-from apichecker import consultar_apigugul
-from colorama import init, Fore, Style
+from colorama import init, Fore
+# Mantén tus otros imports...
 
-init(autoreset=True, wrap=True)
-api_key=os.getenv('google_API')
+init(autoreset=True)
 
-print('¿Bienvenido a Fast-Checker. \n ¿Que deseas verificar?')
-user_input = input()
-if user_input.startswith('https'):
-    termino_busqueda = extraer_titulo(user_input)
-else:
-    termino_busqueda = user_input
+def consultar_apigugul(query, api_key, locale='es-CL'):
+    # Añadimos languageCode a la URL para filtrar resultados
+    url = f"https://factchecktools.googleapis.com/v1alpha1/claims:search?query={query}&key={api_key}&languageCode={locale}"
+    try:
+        response = requests.get(url, timeout=5)
+        data = response.json()
+        return data.get('claims', [])
+    except Exception as e:
+        print(f"Error API Google: {e}")
+        return []
 
-claims = consultar_apigugul(termino_busqueda, api_key)
-
-
-if claims:
-        for claim in claims:
-            texto = claim['text']
-            autor = claim['claimReview'][0]['publisher']['name']
-            titulo = claim['claimReview'][0]['title']
-            rating = claim['claimReview'][0]['textualRating']
-            color_rating = rating.lower()
-            print(f'{texto}')
-            print(f'Autor {autor}')
-            print(f'Título: {titulo}')
-            if 'fals' in color_rating or 'fak' in color_rating:
-                print('Conclusión: ' + Fore.RED + f'{rating}')
-                print('---------------------------------')
-            elif 'verdader' in color_rating or 'true' in color_rating:
-                     print(f'Conclusión: ' + Fore.GREEN + f'{rating}')
-                     print('---------------------------------')
-            else:
-                print(f'Conclusión: ' + Fore.YELLOW + f'{rating}')
-                print('---------------------------------')
-                  
-else:
-        print('Lo siento, no se encontraron verificaciones oficiales sobre este tema.')
-
-
-
+# --- ESTO ES LO QUE ARREGLA TU PROBLEMA ---
+if __name__ == '__main__':
+    # Todo lo que esté AQUÍ ADENTRO solo se ejecutará si corres el archivo directamente
+    # Pero Flask lo ignorará cuando lo importe.
+    api_key = os.getenv('google_API')
+    print('Bienvenido a CheckMate (Modo Consola)')
+    user_input = input('¿Qué deseas verificar? ')
+    
+    # ... tu lógica actual de prints y colores ...
+    results = consultar_apigugul(user_input, api_key)
+    if results:
+        for claim in results:
+            print(f"Resultado: {claim['claimReview'][0]['textualRating']}")
+    else:
+        print("No se encontraron resultados.")
 
 
 

@@ -1,43 +1,189 @@
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
-        <title>CheckMate: ¿Es real o Fake New?</title>
-    </head>
-    <body>
-        <main class="container">
-        <header>
-            <h1>Checkmate</h1>
-            <h2>ES real o Fake New?</h2>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    <title>CheckMate Pro: Verificador Híbrido</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --bg-gradient: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+        }
+
+        body {
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            color: #1e293b;
+        }
+
+        .container { max-width: 850px; padding-top: 3rem; }
+
+        header h1 { 
+            font-weight: 800; 
+            color: var(--primary-color); 
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .formulario-app {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 3rem;
+        }
+
+        /* Estilo de Acordeones (Cerrados por defecto) */
+        details {
+            background: white;
+            padding: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+            border-left: 8px solid var(--primary-color);
+            transition: all 0.3s ease;
+        }
+
+        summary {
+            font-weight: bold;
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        summary::-webkit-details-marker { display: none; }
+
+        summary mark {
+            border-radius: 20px;
+            padding: 0 12px;
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        /* Tarjetas dentro de los acordeones */
+        article.resultado-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            box-shadow: none;
+        }
+
+        .badge-veredicto {
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: white;
+            background: #64748b;
+        }
+
+        .btn-link {
+            margin-top: 1rem;
+            display: inline-block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .resultados { animation: fadeIn 0.5s ease-out; }
+    </style>
+</head>
+<body>
+    <main class="container">
+        <header style="text-align: center;">
+            <h1>🛡️ CheckMate</h1>
+            <p><strong>Verificación Híbrida:</strong> Google API + Medios Chilenos + Web</p>
         </header>
-        <div class="aplicacion">
-            <h1>CHECKMATE WEB</h1>
-            <p1>Verifiquemos si tu noticia/afirmación es real según los medios especializados</p1>
-        </div>
+
         <div class="formulario-app">
-            <h1>Ingresa el link de tu noticia o tu afirmación</h1>
-            <form method="post" class="formulario-user">
-                <input type='text' name="input_userform">
-                <button type="submit">Consultar</button>
+            <form method="post" id="checkForm">
+                <label for="input_userform">Ingresa una noticia, frase o link:</label>
+                <input type="text" name="input_userform" id="input_userform" 
+                       placeholder="Ej: El feriado de mañana es falso..." required>
+                <button type="submit" id="submitBtn" style="background-color: var(--primary-color); border: none;">
+                    Analizar en todas las fuentes
+                </button>
             </form>
         </div>
-        <div class="resultados">
-            {% if resultados%}
-                {% for item in resultados %}
-                    <article>
-                    <h1 name="afirmacion">Afirmación: {{ item['text'] }} </h1>
-                    <h2 name ="autor">Autor: {{ item['claimReview'][0]['publisher']['name'] }}</h2>
-                    <h3 name="titulo"> Titulo: {{ item['claimReview'][0]['title'] }}</h3>
-                    <p1 name="rating">Conclusión {{ item['claimReview'][0]['textualRating'] }}</p1>
-                    </article>
-                {%endfor%}
-            {% else %}
-                <article>
-                <h1>('Lo siento, no se encontraron verificaciones oficiales sobre este tema.')</h1> 
-                </article>
-            {%endif%}
-        </div>
-        </main>
-    </body>
 
+        {% if busqueda %}
+        <div class="resultados">
+            <h2 style="font-size: 1.1rem; margin-bottom: 1.5rem;">Resultados para: <i>"{{ busqueda }}"</i></h2>
+
+            <details>
+                <summary>
+                    <span>🌍 Google Fact Check API</span>
+                    <mark>{{ google|length if google else 0 }}</mark>
+                </summary>
+                {% if google %}
+                    {% for item in google %}
+                    <article class="resultado-card">
+                        <small>Fuente: {{ item.claimReview[0].publisher.name }}</small>
+                        <h4 style="margin: 0.5rem 0;">{{ item.claimReview[0].title }}</h4>
+                        <span class="badge-veredicto">{{ item.claimReview[0].textualRating }}</span>
+                    </article>
+                    {% endfor %}
+                {% else %}
+                    <p style="padding: 1rem;">No se encontraron registros en la base de datos de Google.</p>
+                {% endif %}
+            </details>
+
+            <details>
+                <summary>
+                    <span>🇨🇱 Fact-Checking Chile (FastCheck/PUC)</span>
+                    <mark>{{ chile|length if chile else 0 }}</mark>
+                </summary>
+                {% if chile %}
+                    {% for item in chile %}
+                    <article class="resultado-card" style="border-left: 4px solid #1095c1;">
+                        <small>Medio: {{ item.claimReview[0].publisher.name }}</small>
+                        <h4 style="margin: 0.5rem 0;">{{ item.claimReview[0].title }}</h4>
+                        <a href="{{ item.claimReview[0].url }}" target="_blank" role="button" class="outline btn-link">
+                            Ver reporte completo
+                        </a>
+                    </article>
+                    {% endfor %}
+                {% else %}
+                    <p style="padding: 1rem;">No hay registros en la prensa de verificación chilena.</p>
+                {% endif %}
+            </details>
+
+            <details>
+                <summary>
+                    <span>🔍 Búsqueda Web General</span>
+                    <mark>{{ web|length if web else 0 }}</mark>
+                </summary>
+                {% if web %}
+                    {% for item in web %}
+                    <article class="resultado-card" style="border-left: 4px solid #64748b;">
+                        <h4 style="margin: 0;">{{ item.claimReview[0].title }}</h4>
+                        <p style="font-size: 0.9rem; margin: 0.5rem 0;">{{ item.claimReview[0].textualRating }}</p>
+                        <a href="{{ item.claimReview[0].url }}" target="_blank" class="btn-link">Visitar sitio web</a>
+                    </article>
+                    {% endfor %}
+                {% else %}
+                    <p style="padding: 1rem;">Sin resultados relevantes en la web abierta.</p>
+                {% endif %}
+            </details>
+
+        </div>
+        {% endif %}
+    </main>
+
+    <script>
+        document.getElementById('checkForm').onsubmit = function() {
+            const btn = document.getElementById('submitBtn');
+            btn.setAttribute('aria-busy', 'true');
+            btn.innerText = 'Consultando todas las fuentes...';
+        };
+    </script>
+</body>
 </html>
